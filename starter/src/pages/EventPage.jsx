@@ -63,6 +63,9 @@ export const EventPage = () => {
     }
   }, [eventVersion]);
 
+  // Toast for deletion
+  const deletionToast = useToast();
+
   // Fetch user data
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -92,9 +95,32 @@ export const EventPage = () => {
   } = useDisclosure();
   const cancelRef = React.useRef();
   const deleteEvent = async () => {
-    fetch(`http://localhost:3000/events/${event.id}`, {
-      method: "DELETE",
-    });
+    let response
+    const deleteFailed = {
+      title: "Delete failed.",
+      description: "Unable to delete this event. Try again later.",
+      status: "error",
+      duration: 5000,
+      isClosable: true,
+    };
+    try {
+      response = await fetch(`http://localhost:3000/events/${event.id}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      deletionToast(deleteFailed)
+    }
+    if (response.ok) {
+      deletionToast({
+        title: "Event deleted.",
+        description: "The event was sucessfully deleted.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      deletionToast(deleteFailed)
+    }
   };
 
   const performDelete = () => {
