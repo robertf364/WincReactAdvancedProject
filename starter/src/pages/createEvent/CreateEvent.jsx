@@ -2,7 +2,9 @@ import {
   Button,
   ButtonGroup,
   FormControl,
+  FormErrorMessage,
   FormLabel,
+  Tooltip,
   Input,
   Menu,
   MenuButton,
@@ -42,20 +44,25 @@ export const AddEventModal = ({
   const [description, setDescription] = useState(
     event === undefined ? "" : event.description
   );
-  const [selectedCategories, setSelectedCategories] = useState(
-    event === undefined
-      ? []
-      : categories.filter((cat) => event.categoryIds.includes(cat.id))
-  );
-  const [location, setLocation] = useState(
-    event === undefined ? "" : event.location
-  );
-  const [startTime, setStartTime] = useState(
-    event === undefined ? "" : event.startTime
-  );
-  const [endTime, setEndTime] = useState(
-    event === undefined ? "" : event.endTime
-  );
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [location, setLocation] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [image, setImage] = useState(undefined);
+
+  // Update the form to have the event's properties
+  useEffect(() => {
+    if (event) {
+      setCreatedBy(event.createdBy)
+      setTitle(event.title)
+      setDescription(event.description)
+      setSelectedCategories(categories.filter((cat) => event.categoryIds.includes(cat.id)))
+      setLocation(event.location)
+      setStartTime(event.startTime)
+      setEndTime(event.endTime)
+      setImage(event.image);
+    }
+  }, [event])
 
   // Function for selecting categories
   const handleCategoryChange = (cat) => {
@@ -83,19 +90,6 @@ export const AddEventModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Function for resetting the form
-  const resetForm = () => {
-    setHasError(false);
-    setIsLoading(false);
-    setCreatedBy(null);
-    setTitle("");
-    setDescription("");
-    setSelectedCategories([]);
-    setLocation("");
-    setStartTime("");
-    setEndTime("");
-  };
-
   const createEvent = () => {
     // Create array of categoryIds
     const categoryIds = selectedCategories.map((cat) => cat.id);
@@ -109,6 +103,9 @@ export const AddEventModal = ({
       startTime,
       endTime,
     };
+    if (image) {
+      event.image = image
+    }
     return event;
   };
 
@@ -151,71 +148,127 @@ export const AddEventModal = ({
     }
   };
 
+  // Error statuses for fields
+  const [isTouched, setTouchedFields] = useState({
+    title: false,
+    description: false,
+    location: false,
+    startTime: false,
+    endTime: false,
+  })
+  const isError = {
+    title: title === "",
+    description: description === "",
+    location: location === "",
+    startTime: startTime === "",
+    endTime: endTime === "",
+  }
+  const hasAnyError = Object.values(isError).some(Boolean)
+
+  // Function for resetting the form
+  const resetForm = () => {
+    setHasError(false);
+    setIsLoading(false);
+    setCreatedBy(null);
+    setTitle("");
+    setDescription("");
+    setSelectedCategories([]);
+    setLocation("");
+    setStartTime("");
+    setEndTime("");
+    const tmpObj = {}
+    for (const key of Object.keys(isTouched)) {
+      tmpObj[key] = false
+    }
+    setTouchedFields(tmpObj)
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={["full", "md"]}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Add Event</ModalHeader>
         <ModalBody>
-          <FormControl>
+          <FormControl isInvalid={isError.title && isTouched.title}>
             <FormLabel>Title</FormLabel>
             <Input
               type="text"
+              id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value)
+              }}
+              onBlur={() => setTouchedFields({ ...isTouched, title: true })}
             />
+            {(isTouched.title && isError.title) && (
+              <FormErrorMessage>Title is required</FormErrorMessage>
+            )}
+          </FormControl>
 
+          <FormControl isInvalid={isError.description && isTouched.description}>
             <FormLabel>Description</FormLabel>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onBlur={() => setTouchedFields({ ...isTouched, description: true })}
               placeholder="Describe your event"
             />
+            {(isTouched.description && isError.description) && (
+              <FormErrorMessage>Description is required</FormErrorMessage>
+            )}
+          </FormControl>
 
-            <FormLabel>Category</FormLabel>
-            <Menu>
-              <MenuButton
-                isDisabled={remainingCategories.length < 1}
-                as={Button}
-                rightIcon={<ChevronDownIcon />}
-              >
-                {remainingCategories.length < 1
-                  ? "No more categories"
-                  : "Add Category"}
-              </MenuButton>
-              <MenuList>
-                {remainingCategories.map((cat) => (
-                  <MenuItem
-                    textTransform={"capitalize"}
-                    key={cat.id}
-                    onClick={() => handleCategoryChange(cat)}
-                  >
-                    {cat.name}
-                  </MenuItem>
-                ))}
-              </MenuList>
-            </Menu>
-            <Flex marginY={2}>
-              {selectedCategories.map((cat) => (
-                <Tag
+          <FormLabel>Category</FormLabel>
+          <Menu>
+            <MenuButton
+              isDisabled={remainingCategories.length < 1}
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+            >
+              {remainingCategories.length < 1
+                ? "No more categories"
+                : "Add Category"}
+            </MenuButton>
+            <MenuList>
+              {remainingCategories.map((cat) => (
+                <MenuItem
                   textTransform={"capitalize"}
-                  marginRight={2}
-                  marginTop={2}
                   key={cat.id}
+                  onClick={() => handleCategoryChange(cat)}
                 >
-                  <TagLabel>{cat.name}</TagLabel>
-                  <TagCloseButton onClick={() => handleCategoryChange(cat)} />
-                </Tag>
+                  {cat.name}
+                </MenuItem>
               ))}
-            </Flex>
+            </MenuList>
+          </Menu>
+          <Flex marginY={2}>
+            {selectedCategories.map((cat) => (
+              <Tag
+                textTransform={"capitalize"}
+                marginRight={2}
+                marginTop={2}
+                key={cat.id}
+              >
+                <TagLabel>{cat.name}</TagLabel>
+                <TagCloseButton onClick={() => handleCategoryChange(cat)} />
+              </Tag>
+            ))}
+          </Flex>
 
+          <FormControl isInvalid={isError.location && isTouched.location}>
             <FormLabel>Location</FormLabel>
             <Input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              onBlur={() => setTouchedFields({ ...isTouched, location: true })}
             />
+            {(isTouched.location && isError.location) && (
+              <FormErrorMessage>Location is required</FormErrorMessage>
+            )}
+          </FormControl>
 
+          <FormControl isInvalid={isError.startTime && isTouched.startTime}>
             <FormLabel>Start time</FormLabel>
             <Input
               placeholder="Select Date and Time"
@@ -223,8 +276,14 @@ export const AddEventModal = ({
               type="datetime-local"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
+              onBlur={() => setTouchedFields({ ...isTouched, startTime: true })}
             />
+            {(isTouched.startTime && isError.startTime) && (
+              <FormErrorMessage>Start time is required</FormErrorMessage>
+            )}
+          </FormControl>
 
+          <FormControl isInvalid={isError.endTime && isTouched.endTime}>
             <FormLabel>End time</FormLabel>
             <Input
               placeholder="Select Date and Time"
@@ -233,7 +292,11 @@ export const AddEventModal = ({
               value={endTime}
               min={startTime}
               onChange={(e) => setEndTime(e.target.value)}
+              onBlur={() => setTouchedFields({ ...isTouched, endTime: true })}
             />
+            {(isTouched.endTime && isError.endTime) && (
+              <FormErrorMessage>End time is required</FormErrorMessage>
+            )}
           </FormControl>
           {hasError && (
             <Alert status="error" my={4}>
@@ -246,13 +309,16 @@ export const AddEventModal = ({
         </ModalBody>
         <ModalFooter>
           <ButtonGroup variant="outline" spacing="6">
-            <Button
-              colorScheme="blue"
-              isLoading={isLoading}
-              onClick={() => handleSubmit(event.id)}
-            >
-              Save
-            </Button>
+            <Tooltip label="Please fill out all fields" isDisabled={!hasAnyError}>
+              <Button
+                colorScheme="blue"
+                isLoading={isLoading}
+                isDisabled={hasAnyError}
+                onClick={() => handleSubmit(event ? event.id : undefined)}
+              >
+                Save
+              </Button>
+            </Tooltip>
             <Button
               onClick={() => {
                 if (event === undefined) {
