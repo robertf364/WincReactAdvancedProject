@@ -1,12 +1,28 @@
 // Fetch events
-export const fetchEvents = async () => {
-    const response = await fetch("http://localhost:3000/events");
+export const fetchEvents = async (hasError) => {
+    let response
+    try {
+        response = await fetch("http://localhost:3000/events");
+        if (hasError) {
+            hasError(false)
+        }
+    } catch {
+        if (hasError) {
+            hasError(true)
+        }
+        return []
+    }
     return await response.json();
 }
-  
+
 // Fetch categories
 export const fetchCategories = async () => {
-    const response = await fetch("http://localhost:3000/categories");
+    let response
+    try {
+        response = await fetch("http://localhost:3000/categories");
+    } catch {
+        return []
+    }
     return await response.json();
 }
 

@@ -37,10 +37,11 @@ export const EventsPage = () => {
 
   // State and effect for reloading events
   const [eventVersion, setEventVersion] = useState(0);
+  const [eventsError, setEventsError] = useState(false);
   const [events, setEvents] = useState([]);
   useEffect(() => {
     const fetchEventData = async () => {
-      setEvents(await fetchEvents());
+      setEvents(await fetchEvents(setEventsError));
     };
     fetchEventData();
   }, [eventVersion]);
@@ -155,9 +156,16 @@ export const EventsPage = () => {
           </Button>
         )}
       </Wrap>
+      {eventsError && (
+        <Text></Text>
+      )}
       {filteredEvents.length < 1 && (
         <Text marginTop={5} as={"b"}>
-          No results for these categories :(
+          {eventsError ? (
+            "No events could be loaded. Please check your internet connection and try again."
+          ) : (
+            "No results for these categories :("
+          )}
         </Text>
       )}
       {filteredEvents.map((event) => (
