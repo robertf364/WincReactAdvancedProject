@@ -23,7 +23,6 @@ import placeholder from "../assets/placeholder.svg";
 
 export const loader = async () => {
   // Fetch events
-  // const events = await fetchEvents();
   const categories = await fetchCategories();
   return { categories };
 };
