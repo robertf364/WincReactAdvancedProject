@@ -309,16 +309,6 @@ export const AddEventModal = ({
         </ModalBody>
         <ModalFooter>
           <ButtonGroup variant="outline" spacing="6">
-            <Tooltip label="Please fill out all fields" isDisabled={!hasAnyError}>
-              <Button
-                colorScheme="blue"
-                isLoading={isLoading}
-                isDisabled={hasAnyError}
-                onClick={() => handleSubmit(event ? event.id : undefined)}
-              >
-                Save
-              </Button>
-            </Tooltip>
             <Button
               onClick={() => {
                 if (event === undefined) {
@@ -329,6 +319,16 @@ export const AddEventModal = ({
             >
               Cancel
             </Button>
+            <Tooltip label="Please fill out all fields" isDisabled={!hasAnyError}>
+              <Button
+                colorScheme="blue"
+                isLoading={isLoading}
+                isDisabled={hasAnyError}
+                onClick={() => handleSubmit(event ? event.id : undefined)}
+              >
+                Save
+              </Button>
+            </Tooltip>
           </ButtonGroup>
         </ModalFooter>
       </ModalContent>
