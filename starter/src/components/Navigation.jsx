@@ -8,10 +8,7 @@ export const Navigation = () => {
   return (
     <HStack background={"blue.100"} spacing={5} padding={5}>
       <Link to="/">
-        <NavButton text={"Events"} />
-      </Link>
-      <Link to="/event/1">
-        <NavButton text={"Event"} />
+        <NavButton text={"Home"} />
       </Link>
     </HStack>
   );
